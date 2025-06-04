@@ -1,12 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { User } from '../models/User';
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
-interface AuthRequest extends Request {
-  user?: any;
-}
-
-export const auth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
 
@@ -15,7 +10,7 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your_jwt_secret_key_here');
-    const user = await User.findOne({ _id: (decoded as any)._id });
+    const user = await User.findOne({ _id: decoded._id });
 
     if (!user) {
       throw new Error();
@@ -28,7 +23,7 @@ export const auth = async (req: AuthRequest, res: Response, next: NextFunction) 
   }
 };
 
-export const adminAuth = async (req: AuthRequest, res: Response, next: NextFunction) => {
+const adminAuth = async (req, res, next) => {
   try {
     await auth(req, res, () => {
       if (req.user.role !== 'admin') {
@@ -39,4 +34,6 @@ export const adminAuth = async (req: AuthRequest, res: Response, next: NextFunct
   } catch (error) {
     res.status(401).json({ error: 'Please authenticate.' });
   }
-}; 
+};
+
+module.exports = auth;

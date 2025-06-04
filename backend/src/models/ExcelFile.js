@@ -1,17 +1,6 @@
-import mongoose, { Document, Schema } from 'mongoose';
+const mongoose = require('mongoose');
 
-export interface IExcelFile extends Document {
-  filename: string;
-  originalName: string;
-  path: string;
-  size: number;
-  mimetype: string;
-  user: mongoose.Types.ObjectId;
-  columns: string[];
-  rowCount: number;
-}
-
-const excelFileSchema = new Schema<IExcelFile>({
+const excelFileSchema = new mongoose.Schema({
   filename: {
     type: String,
     required: true
@@ -33,7 +22,7 @@ const excelFileSchema = new Schema<IExcelFile>({
     required: true
   },
   user: {
-    type: Schema.Types.ObjectId,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: true
   },
@@ -48,4 +37,4 @@ const excelFileSchema = new Schema<IExcelFile>({
   timestamps: true
 });
 
-export const ExcelFile = mongoose.model<IExcelFile>('ExcelFile', excelFileSchema); 
+module.exports = mongoose.model('ExcelFile', excelFileSchema);

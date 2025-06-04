@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "*": ["node_modules/*", "src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}
