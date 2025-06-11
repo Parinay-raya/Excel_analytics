@@ -23,7 +23,7 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 
-const UploadHistory = ({ uploads, onViewData, onDeleteUpload, onRefresh }) => {
+const UploadHistory = ({ uploads, onViewData, onDeleteUpload, onRefresh, onDownload }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -113,8 +113,8 @@ const UploadHistory = ({ uploads, onViewData, onDeleteUpload, onRefresh }) => {
                           <VisibilityIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Download Original">
-                        <IconButton>
+                      <Tooltip title="Download as PDF">
+                        <IconButton onClick={() => onDownload(upload.id, 'pdf')}>
                           <DownloadIcon />
                         </IconButton>
                       </Tooltip>
@@ -169,7 +169,8 @@ UploadHistory.propTypes = {
   ).isRequired,
   onViewData: PropTypes.func.isRequired,
   onDeleteUpload: PropTypes.func.isRequired,
-  onRefresh: PropTypes.func.isRequired
+  onRefresh: PropTypes.func.isRequired,
+  onDownload: PropTypes.func.isRequired
 };
 
 export default UploadHistory;

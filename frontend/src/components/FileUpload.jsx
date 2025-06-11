@@ -19,24 +19,21 @@ import {
 } from '@mui/icons-material';
 
 const FileUpload = ({ onUploadSuccess }) => {
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // Check if file is an Excel file
-      if (!file.name.match(/\.(xlsx|xls)$/)) {
-        setError('Please select a valid Excel file (.xlsx or .xls)');
-        return;
-      }
-      
-      setSelectedFile(file);
+    const files = Array.from(event.target.files);
+    const validFiles = files.filter(file => file.name.match(/\.(xlsx|xls)$/));
+    if (validFiles.length !== files.length) {
+      setError('Some files were not valid Excel files (.xlsx or .xls) and were ignored.');
+    } else {
       setError('');
     }
+    setSelectedFiles(validFiles);
   };
 
   const handleDragOver = (e) => {
@@ -45,73 +42,57 @@ const FileUpload = ({ onUploadSuccess }) => {
 
   const handleDrop = (e) => {
     e.preventDefault();
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const file = e.dataTransfer.files[0];
-      
-      // Check if file is an Excel file
-      if (!file.name.match(/\.(xlsx|xls)$/)) {
-        setError('Please select a valid Excel file (.xlsx or .xls)');
-        return;
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const files = Array.from(e.dataTransfer.files);
+      const validFiles = files.filter(file => file.name.match(/\.(xlsx|xls)$/));
+      if (validFiles.length !== files.length) {
+        setError('Some files were not valid Excel files (.xlsx or .xls) and were ignored.');
+      } else {
+        setError('');
       }
-      
-      setSelectedFile(file);
-      setError('');
+      setSelectedFiles(validFiles);
     }
   };
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
-
+    if (!selectedFiles.length) return;
     setUploading(true);
     setUploadProgress(0);
     setError('');
     setSuccess('');
 
-    // Create a FormData object
-    const formData = new FormData();
-    formData.append('file', selectedFile);
+    // Simulate upload progress
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+      progress += 10;
+      setUploadProgress(progress);
+      if (progress >= 100) {
+        clearInterval(progressInterval);
+      }
+    }, 300);
 
     try {
-      // Simulate upload progress
-      const progressInterval = setInterval(() => {
-        setUploadProgress((prevProgress) => {
-          const newProgress = prevProgress + 10;
-          if (newProgress >= 100) {
-            clearInterval(progressInterval);
-            return 100;
-          }
-          return newProgress;
-        });
-      }, 300);
-
       // Simulate API call with a delay
       await new Promise(resolve => setTimeout(resolve, 3000));
-      
-      // Mock response data
-      const mockResponse = {
-        id: 'upload_' + Date.now(),
-        fileName: selectedFile.name,
-        uploadDate: new Date().toISOString(),
-        fileSize: selectedFile.size,
-        status: 'Processed'
-      };
-
-      clearInterval(progressInterval);
+      // Mock response data for each file
+      selectedFiles.forEach(file => {
+        const mockResponse = {
+          id: 'upload_' + Date.now() + '_' + file.name,
+          fileName: file.name,
+          uploadDate: new Date().toISOString(),
+          fileSize: file.size,
+          status: 'Processed'
+        };
+        onUploadSuccess(mockResponse);
+      });
       setUploadProgress(100);
-      setSuccess('File uploaded successfully!');
-      
-      // Call the success callback with the mock response
-      onUploadSuccess(mockResponse);
-      
-      // Reset the form after a delay
+      setSuccess('Files uploaded successfully!');
       setTimeout(() => {
-        setSelectedFile(null);
+        setSelectedFiles([]);
         setUploading(false);
         setUploadProgress(0);
         setSuccess('');
       }, 2000);
-      
     } catch (error) {
       console.error('Upload failed:', error);
       setError('Upload failed. Please try again.');
@@ -119,8 +100,8 @@ const FileUpload = ({ onUploadSuccess }) => {
     }
   };
 
-  const handleClearFile = () => {
-    setSelectedFile(null);
+  const handleClearFile = (index) => {
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
     setError('');
     setSuccess('');
   };
@@ -171,7 +152,7 @@ const FileUpload = ({ onUploadSuccess }) => {
         </Alert>
       )}
       
-      {!selectedFile ? (
+      {selectedFiles.length === 0 ? (
         <Box
           sx={{
             border: '2px dashed #ccc',
@@ -193,12 +174,13 @@ const FileUpload = ({ onUploadSuccess }) => {
             type="file"
             id="file-input"
             accept=".xlsx,.xls"
+            multiple
             onChange={handleFileChange}
             style={{ display: 'none' }}
           />
           <CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main', mb: 1 }} />
           <Typography variant="h6" gutterBottom>
-            Drag & Drop your Excel file here
+            Drag & Drop your Excel files here
           </Typography>
           <Typography variant="body2" color="textSecondary" gutterBottom>
             or
@@ -211,23 +193,24 @@ const FileUpload = ({ onUploadSuccess }) => {
             Browse Files
           </Button>
           <Typography variant="body2" color="textSecondary" sx={{ mt: 2 }}>
-            Supported formats: .xlsx, .xls
+            Supported formats: .xlsx, .xls. You can select multiple files.
           </Typography>
         </Box>
       ) : (
         <Box sx={{ mt: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <FileIcon sx={{ color: 'primary.main', mr: 1 }} />
-            <Typography variant="body1" sx={{ flexGrow: 1 }}>
-              {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
-            </Typography>
-            <Tooltip title="Remove file">
-              <IconButton onClick={handleClearFile} disabled={uploading}>
-                <CloseIcon />
-              </IconButton>
-            </Tooltip>
-          </Box>
-          
+          {selectedFiles.map((file, idx) => (
+            <Box key={file.name + idx} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <FileIcon sx={{ color: 'primary.main', mr: 1 }} />
+              <Typography variant="body1" sx={{ flexGrow: 1 }}>
+                {file.name} ({(file.size / 1024).toFixed(2)} KB)
+              </Typography>
+              <Tooltip title="Remove file">
+                <IconButton onClick={() => handleClearFile(idx)} disabled={uploading}>
+                  <CloseIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          ))}
           {uploading && (
             <Box sx={{ width: '100%', mb: 2 }}>
               <LinearProgress variant="determinate" value={uploadProgress} />
@@ -236,7 +219,6 @@ const FileUpload = ({ onUploadSuccess }) => {
               </Typography>
             </Box>
           )}
-          
           <Button
             variant="contained"
             color="primary"
@@ -245,7 +227,7 @@ const FileUpload = ({ onUploadSuccess }) => {
             disabled={uploading}
             fullWidth
           >
-            {uploading ? 'Uploading...' : 'Upload File'}
+            {uploading ? 'Uploading...' : 'Upload Files'}
           </Button>
         </Box>
       )}
