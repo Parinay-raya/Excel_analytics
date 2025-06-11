@@ -43,6 +43,8 @@ import UploadHistory from '../components/UploadHistory';
 import DataViewer from '../components/DataViewer';
 import TwoDimensionalCharts from '../components/charts/TwoDimensionalCharts';
 import ThreeDimensionalCharts from '../components/charts/ThreeDimensionalCharts';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 // Mock data for demonstration
 const generateMockData = () => {
@@ -98,9 +100,9 @@ const Dashboard = () => {
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
   const [activeTab, setActiveTab] = useState(0);
   const [anchorEl, setAnchorEl] = useState(null);
-  const [uploads, setUploads] = useState(mockUploads);
-  const [currentData, setCurrentData] = useState(generateMockData());
-  const [currentFileName, setCurrentFileName] = useState('sales_data_2023.xlsx');
+  const [uploads, setUploads] = useState([]); // Start with no uploads
+  const [currentData, setCurrentData] = useState([]); // Start with no data
+  const [currentFileName, setCurrentFileName] = useState('');
   const [columns, setColumns] = useState([]);
   const [showUploadForm, setShowUploadForm] = useState(false);
 
@@ -136,9 +138,12 @@ const Dashboard = () => {
   const handleUploadSuccess = (uploadData) => {
     // Add the new upload to the list
     setUploads([uploadData, ...uploads]);
-    
-    // Generate new mock data for the upload
-    const newData = generateMockData();
+    // For demo: create simple mock data for the uploaded file (replace with real file parsing in production)
+    const newData = [
+      { id: 1, name: 'Row 1', value: Math.floor(Math.random() * 100) },
+      { id: 2, name: 'Row 2', value: Math.floor(Math.random() * 100) },
+      { id: 3, name: 'Row 3', value: Math.floor(Math.random() * 100) }
+    ];
     setCurrentData(newData);
     setCurrentFileName(uploadData.fileName);
     
@@ -153,8 +158,12 @@ const Dashboard = () => {
     // Find the upload
     const upload = uploads.find(u => u.id === uploadId);
     if (upload) {
-      // Generate new mock data for this upload
-      const newData = generateMockData();
+      // For demo: create simple mock data for the selected upload (replace with real file parsing in production)
+      const newData = [
+        { id: 1, name: 'Row 1', value: Math.floor(Math.random() * 100) },
+        { id: 2, name: 'Row 2', value: Math.floor(Math.random() * 100) },
+        { id: 3, name: 'Row 3', value: Math.floor(Math.random() * 100) }
+      ];
       setCurrentData(newData);
       setCurrentFileName(upload.fileName);
       
@@ -197,6 +206,27 @@ const Dashboard = () => {
 
   const drawerWidth = 240;
 
+  // Download handler for UploadHistory
+  const handleDownloadUpload = (uploadId, format) => {
+    // Find the upload
+    const upload = uploads.find(u => u.id === uploadId);
+    if (!upload) return;
+    // For demo: use currentData if the file is currently viewed, otherwise show a message
+    if (format === 'pdf') {
+      if (currentFileName === upload.fileName && currentData.length > 0) {
+        // Generate PDF from currentData
+        const doc = new jsPDF();
+        const columns = Object.keys(currentData[0] || {});
+        const rows = currentData.map(row => columns.map(col => row[col]));
+        doc.text(upload.fileName, 10, 10);
+        doc.autoTable({ head: [columns], body: rows, startY: 20 });
+        doc.save(`${upload.fileName.replace(/\.[^/.]+$/, "")}.pdf`);
+      } else {
+        alert('Please view this file first to download its data.');
+      }
+    }
+  };
+
   const drawer = (
     <Box sx={{ width: drawerWidth }}>
       <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -220,7 +250,7 @@ const Dashboard = () => {
           </ListItemIcon>
           <ListItemText primary="Dashboard" />
         </ListItem>
-        <ListItem button selected={activeTab === 1} onClick={() => setActiveTab(1)}>
+                <ListItem button selected={activeTab === 1} onClick={() => setActiveTab(1)}>
           <ListItemIcon>
             <BarChartIcon />
           </ListItemIcon>
@@ -365,28 +395,43 @@ const Dashboard = () => {
         )}
         
         <Container maxWidth="xl">
+          {/* Welcome message at the top */}
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>
+              Welcome, {user.name}!
+            </Typography>
+          </Box>
+
+          {/* Always show Upload History section */}
+          <UploadHistory 
+            uploads={uploads} 
+            onViewData={handleViewData} 
+            onDeleteUpload={handleDeleteUpload}
+            onRefresh={handleRefreshUploads}
+            onDownload={handleDownloadUpload}
+          />
+
           {/* Dashboard Tab */}
           {activeTab === 0 && (
             <>
-              {showUploadForm ? (
-                <FileUpload onUploadSuccess={handleUploadSuccess} />
-              ) : (
+              {/* Always show upload form on dashboard */}
+              <FileUpload onUploadSuccess={handleUploadSuccess} />
+
+              <Box sx={{ mb: 4 }}>
+                <Typography variant="body1" color="textSecondary">
+                  Upload Excel files to visualize and analyze your data with interactive charts.
+                </Typography>
+              </Box>
+              {/* Always show DataViewer and charts if there is data */}
+              {currentData.length > 0 && (
                 <>
-                  <Box sx={{ mb: 4 }}>
-                    <Typography variant="h4" gutterBottom>
-                      Welcome back, {user.name}!
-                    </Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      Upload Excel files to visualize and analyze your data with interactive charts.
-                    </Typography>
-                  </Box>
-                  
-                  {currentData.length > 0 && (
-                    <>
-                      <TwoDimensionalCharts data={currentData} columns={columns} />
-                      <ThreeDimensionalCharts data={currentData} columns={columns} />
-                    </>
-                  )}
+                  <DataViewer 
+                    data={currentData} 
+                    columns={columns} 
+                    fileName={currentFileName}
+                  />
+                  <TwoDimensionalCharts data={currentData} columns={columns} />
+                  <ThreeDimensionalCharts data={currentData} columns={columns} />
                 </>
               )}
             </>
@@ -409,28 +454,11 @@ const Dashboard = () => {
               )}
             </>
           )}
-          
-          {/* Upload History Tab */}
-          {activeTab === 2 && (
-            <UploadHistory 
-              uploads={uploads} 
-              onViewData={handleViewData} 
-              onDeleteUpload={handleDeleteUpload}
-              onRefresh={handleRefreshUploads}
-            />
-          )}
         </Container>
       </Box>
       
       {/* Floating action button for upload */}
-      <Fab 
-        color="primary" 
-        aria-label="upload" 
-        sx={{ position: 'fixed', bottom: 16, right: 16 }}
-        onClick={toggleUploadForm}
-      >
-        <AddIcon />
-      </Fab>
+      {/* Remove FAB since upload is now in sidebar and dashboard */}
     </Box>
   );
 };
