@@ -1,15 +1,16 @@
+// routes/userRoutes.js
+
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const auth = require('../middleware/auth');
+const { auth, adminAuth } = require('../middleware/auth');
 
-// Register a new user
+// Existing routes...
 router.post('/register', userController.registerUser);
-
-// Login user
 router.post('/login', userController.loginUser);
-
-// Get user profile (protected route)
 router.get('/profile', auth, userController.getUserProfile);
+
+// 🆕 New route for admin to get all users
+router.get('/all', adminAuth, userController.getAllUsers);
 
 module.exports = router;

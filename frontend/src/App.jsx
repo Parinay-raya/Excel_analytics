@@ -1,12 +1,12 @@
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 import PrivateRoute from './components/PrivateRoute.jsx';
-
-
 
 // Create a custom theme
 const theme = createTheme({
@@ -94,11 +94,17 @@ const theme = createTheme({
 });
 
 function App() {
-  // Check if user is authenticated - wrapped in try/catch to handle localStorage errors
+  // Check if user is authenticated and get their role
   let isAuthenticated = false;
+  let userRole = null;
+  
   try {
-    isAuthenticated = localStorage.getItem('token') !== null;
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    isAuthenticated = token !== null;
+    userRole = user.role;
     console.log('Authentication status:', isAuthenticated ? 'Authenticated' : 'Not authenticated');
+    console.log('User role:', userRole);
   } catch (error) {
     console.error('Error checking authentication status:', error);
   }
@@ -124,12 +130,25 @@ function App() {
             }
           />
           
-          {/* Root route - redirect based on authentication */}
+          <Route
+            path="/admin-dashboard"
+            element={
+              <PrivateRoute>
+                <AdminDashboard />
+              </PrivateRoute>
+            }
+          />
+          
+          {/* Root route - redirect based on authentication and role */}
           <Route
             path="/"
             element={
               isAuthenticated ? (
-                <Navigate to="/dashboard" />
+                userRole === 'admin' ? (
+                  <Navigate to="/admin-dashboard" />
+                ) : (
+                  <Navigate to="/dashboard" />
+                )
               ) : (
                 <Navigate to="/login" />
               )
