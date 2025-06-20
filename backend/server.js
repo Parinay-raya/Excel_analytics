@@ -4,6 +4,9 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const http = require('http');
+const userRoutes = require('./src/routes/userRoutes');
+const fileRoutes = require('./src/routes/fileRoutes');
+const activityRoutes = require('./src/routes/activityRoutes');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -28,13 +31,15 @@ mongoose.connect(MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true 
     process.exit(1); // Exit if DB connection fails
   });
 
-// Basic route
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/files', fileRoutes);
+app.use('/api/activity', activityRoutes);
+
+// Root endpoint
 app.get('/', (req, res) => {
   res.json({ message: 'Welcome to Excel Analytics API' });
 });
-
-// User routes
-app.use('/api/users', require('./src/routes/userRoutes'));
 
 // Create HTTP server
 const server = http.createServer(app);

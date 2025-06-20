@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
+import Plot from 'react-plotly.js';
 import {
   Box,
   Paper,
@@ -17,7 +18,6 @@ import {
 import { BarChart as BarChartIcon, BubbleChart as BubbleChartIcon, ShowChart as ShowChartIcon } from '@mui/icons-material';
 import ChartExportControls from './ChartExportControls';
 
-// Fallback 3D chart component that doesn't require external dependencies
 const ThreeDimensionalCharts = ({ data, columns }) => {
   const chartRef = useRef(null);
   const [chartType, setChartType] = useState('scatter3d');
@@ -41,18 +41,60 @@ const ThreeDimensionalCharts = ({ data, columns }) => {
     setZAxisColumn(event.target.value);
   };
 
-  // Get sample data for display
-  const getSampleData = () => {
-    // Extract numeric data for the selected columns
-    return data.slice(0, 10).map(row => ({
-      x: parseFloat(row[xAxisColumn]) || 0,
-      y: parseFloat(row[yAxisColumn]) || 0,
-      z: parseFloat(row[zAxisColumn]) || 0,
-      label: `${xAxisColumn}: ${row[xAxisColumn]}, ${yAxisColumn}: ${row[yAxisColumn]}, ${zAxisColumn}: ${row[zAxisColumn]}`
-    }));
+  // Prepare data for Plotly
+  const getPlotlyData = () => {
+    const x = data.map(row => parseFloat(row[xAxisColumn]) || 0);
+    const y = data.map(row => parseFloat(row[yAxisColumn]) || 0);
+    const z = data.map(row => parseFloat(row[zAxisColumn]) || 0);
+    if (chartType === 'scatter3d') {
+      return [{
+        x,
+        y,
+        z,
+        mode: 'markers',
+        type: 'scatter3d',
+        marker: { size: 5, color: z, colorscale: 'Viridis', opacity: 0.8 },
+        text: data.map((row, i) => `${xAxisColumn}: ${x[i]}, ${yAxisColumn}: ${y[i]}, ${zAxisColumn}: ${z[i]}`),
+        hoverinfo: 'text'
+      }];
+    } else if (chartType === 'surface') {
+      // For surface, z must be a 2D array. We'll try to reshape if possible.
+      // If not possible, fallback to scatter3d.
+      const size = Math.floor(Math.sqrt(z.length));
+      if (size > 1) {
+        const z2d = [];
+        for (let i = 0; i < size; i++) {
+          z2d.push(z.slice(i * size, (i + 1) * size));
+        }
+        return [{
+          z: z2d,
+          type: 'surface',
+          colorscale: 'Viridis',
+        }];
+      } else {
+        return [{
+          x,
+          y,
+          z,
+          mode: 'markers',
+          type: 'scatter3d',
+          marker: { size: 5, color: z, colorscale: 'Viridis', opacity: 0.8 },
+        }];
+      }
+    } else if (chartType === 'mesh3d') {
+      return [{
+        x,
+        y,
+        z,
+        type: 'mesh3d',
+        opacity: 0.5,
+        color: 'rgba(100,200,200,0.5)',
+      }];
+    }
+    return [];
   };
-  
-  const sampleData = getSampleData();
+
+  const plotlyData = getPlotlyData();
 
   return (
     <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
@@ -122,55 +164,31 @@ const ThreeDimensionalCharts = ({ data, columns }) => {
       </Grid>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs value={chartType} onChange={handleChartTypeChange} aria-label="3d chart types">
+        <Tabs value={chartType} onChange={(e, v) => setChartType(v)} aria-label="3d chart types">
           <Tab icon={<BubbleChartIcon />} label="3D Scatter" value="scatter3d" />
           <Tab icon={<ShowChartIcon />} label="3D Surface" value="surface" />
           <Tab icon={<BarChartIcon />} label="3D Mesh" value="mesh3d" />
         </Tabs>
       </Box>
 
-      <Alert severity="info" sx={{ mb: 3 }}>
-        3D visualization requires the Plotly.js library. You can install it by running:
-        <Box component="pre" sx={{ mt: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
-          npm install react-plotly.js plotly.js
-        </Box>
-      </Alert>
-
-      <Box sx={{ height: 'auto', width: '100%', mb: 3 }} ref={chartRef}>
-        <Typography variant="subtitle1" gutterBottom>
-          Selected Data Preview ({chartType})
-        </Typography>
-        <Box sx={{ 
-          border: '1px solid #e0e0e0', 
-          borderRadius: 1, 
-          p: 2, 
-          maxHeight: '300px', 
-          overflowY: 'auto',
-          bgcolor: '#f5f5f5'
-        }}>
-          <Typography variant="subtitle2" gutterBottom>
-            Data points for {xAxisColumn} (X), {yAxisColumn} (Y), {zAxisColumn} (Z):
-          </Typography>
-          {sampleData.map((point, index) => (
-            <Box key={index} sx={{ mb: 1, p: 1, bgcolor: 'background.paper', borderRadius: 1 }}>
-              <Typography variant="body2">
-                Point {index + 1}: X={point.x.toFixed(2)}, Y={point.y.toFixed(2)}, Z={point.z.toFixed(2)}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-      </Box>
-
-      <Box sx={{ textAlign: 'center' }}>
-        <Button 
-          variant="contained" 
-          color="primary"
-          href="https://plotly.com/javascript/3d-charts/" 
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn More About 3D Visualizations
-        </Button>
+      <Box sx={{ height: 500, width: '100%', mb: 3 }} ref={chartRef}>
+        <Plot
+          data={plotlyData}
+          layout={{
+            autosize: true,
+            height: 450,
+            margin: { l: 0, r: 0, b: 0, t: 30 },
+            scene: {
+              xaxis: { title: xAxisColumn },
+              yaxis: { title: yAxisColumn },
+              zaxis: { title: zAxisColumn },
+            },
+            title: `${xAxisColumn} vs ${yAxisColumn} vs ${zAxisColumn}`,
+          }}
+          useResizeHandler={true}
+          style={{ width: '100%', height: '100%' }}
+          config={{ responsive: true }}
+        />
       </Box>
     </Paper>
   );

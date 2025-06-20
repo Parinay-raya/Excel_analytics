@@ -23,9 +23,24 @@ import {
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 
-const UploadHistory = ({ uploads, onViewData, onDeleteUpload, onRefresh, onDownload }) => {
+const UploadHistory = ({
+  uploads = [],
+  onViewData = () => {},
+  onDeleteUpload = () => {},
+  onRefresh = () => {},
+  onDownload = () => {}
+}) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  // Map backend uploads to expected frontend format
+  const mappedUploads = (uploads || []).map(upload => ({
+    id: upload._id ? String(upload._id) : (upload.id || ''),
+    fileName: upload.originalName || upload.fileName || '',
+    uploadDate: upload.createdAt || upload.uploadDate || '',
+    fileSize: upload.size || upload.fileSize || 0,
+    status: 'Processed',
+  }));
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -83,8 +98,8 @@ const UploadHistory = ({ uploads, onViewData, onDeleteUpload, onRefresh, onDownl
             </TableRow>
           </TableHead>
           <TableBody>
-            {uploads.length > 0 ? (
-              uploads
+            {mappedUploads.length > 0 ? (
+              mappedUploads
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((upload) => (
                   <TableRow key={upload.id} hover>
@@ -118,14 +133,16 @@ const UploadHistory = ({ uploads, onViewData, onDeleteUpload, onRefresh, onDownl
                           <DownloadIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton 
-                          onClick={() => onDeleteUpload(upload.id)}
-                          color="error"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Tooltip>
+                      {typeof onDeleteUpload === 'function' && onDeleteUpload !== null && (
+                        <Tooltip title="Delete">
+                          <IconButton 
+                            onClick={() => onDeleteUpload(upload.id)}
+                            color="error"
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
@@ -142,11 +159,11 @@ const UploadHistory = ({ uploads, onViewData, onDeleteUpload, onRefresh, onDownl
         </Table>
       </TableContainer>
       
-      {uploads.length > 0 && (
+      {mappedUploads.length > 0 && (
         <TablePagination
           rowsPerPageOptions={[5, 10, 25]}
           component="div"
-          count={uploads.length}
+          count={mappedUploads.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={handleChangePage}
@@ -160,15 +177,15 @@ const UploadHistory = ({ uploads, onViewData, onDeleteUpload, onRefresh, onDownl
 UploadHistory.propTypes = {
   uploads: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      fileName: PropTypes.string.isRequired,
-      uploadDate: PropTypes.string.isRequired,
-      fileSize: PropTypes.number.isRequired,
-      status: PropTypes.string.isRequired
+      id: PropTypes.string,
+      fileName: PropTypes.string,
+      uploadDate: PropTypes.string,
+      fileSize: PropTypes.number,
+      status: PropTypes.string
     })
-  ).isRequired,
+  ),
   onViewData: PropTypes.func.isRequired,
-  onDeleteUpload: PropTypes.func.isRequired,
+  onDeleteUpload: PropTypes.func,
   onRefresh: PropTypes.func.isRequired,
   onDownload: PropTypes.func.isRequired
 };

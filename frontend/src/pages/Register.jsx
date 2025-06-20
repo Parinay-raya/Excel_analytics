@@ -52,8 +52,11 @@ const Register = () => {
 
   const validateForm = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
     if (!emailRegex.test(formData.email)) return setError('Please enter a valid email');
-    if (formData.password.length < 6) return setError('Password must be at least 6 characters');
+    if (!passwordRegex.test(formData.password)) {
+      return setError('Password must be at least 8 characters and include uppercase, lowercase, number, and special character');
+    }
     if (formData.password !== formData.confirmPassword) return setError('Passwords do not match');
     return true;
   };
@@ -102,7 +105,7 @@ const Register = () => {
             </TextField>
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
-                <TextField fullWidth required name="password" label="Password" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={handleChange} margin="normal" InputProps={{ startAdornment: (<InputAdornment position="start"><Lock /></InputAdornment>), endAdornment: (<InputAdornment position="end"><IconButton onClick={() => togglePasswordVisibility('password')}>{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>) }} />
+                <TextField fullWidth required name="password" label="Password" type={showPassword ? 'text' : 'password'} value={formData.password} onChange={handleChange} margin="normal" InputProps={{ startAdornment: (<InputAdornment position="start"><Lock /></InputAdornment>), endAdornment: (<InputAdornment position="end"><IconButton onClick={() => togglePasswordVisibility('password')}>{showPassword ? <VisibilityOff /> : <Visibility />}</IconButton></InputAdornment>), helperText: 'At least 8 characters, uppercase, lowercase, number, special character' }} />
               </Grid>
               <Grid item xs={12} sm={6}>
                 <TextField fullWidth required name="confirmPassword" label="Confirm Password" type={showConfirmPassword ? 'text' : 'password'} value={formData.confirmPassword} onChange={handleChange} margin="normal" InputProps={{

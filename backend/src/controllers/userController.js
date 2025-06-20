@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const ExcelFile = require('../models/ExcelFile');
 
 const generateToken = (user) => {
   return jwt.sign(
@@ -69,9 +70,24 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+// Admin: Delete user by ID
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findByIdAndDelete(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    // Optionally, delete user's files
+    await ExcelFile.deleteMany({ user: userId });
+    res.json({ message: 'User and their files deleted' });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
   getUserProfile,
-  getAllUsers, // <-- Add this
+  getAllUsers,
+  deleteUser,
 };

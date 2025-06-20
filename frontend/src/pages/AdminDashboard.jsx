@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import {
   Box,
@@ -18,11 +17,16 @@ import {
   AppBar,
   Toolbar,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import { ExitToApp, Dashboard as DashboardIcon, People, Analytics } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import API_CONFIG from '../config/api';
+import UploadHistory from '../components/UploadHistory';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -32,6 +36,8 @@ const AdminDashboard = () => {
     totalAdmins: 0,
     totalRegularUsers: 0
   });
+  const [selectedUserUploads, setSelectedUserUploads] = useState([]);
+  const [viewingUser, setViewingUser] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -71,6 +77,78 @@ const AdminDashboard = () => {
     ) : (
       <Chip label="User" color="primary" size="small" />
     );
+  };
+
+  // Admin: Delete user
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`${API_CONFIG.getUrl(`/users/${userId}`)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUsers(users.filter(u => u._id !== userId && u.id !== userId));
+    } catch (err) {
+      alert('Failed to delete user.');
+    }
+  };
+
+  // Admin: View user upload history
+  const handleViewUploads = async (userId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`${API_CONFIG.getUrl(`/files?userId=${userId}`)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setSelectedUserUploads(res.data.files || []);
+      setViewingUser(users.find(u => u._id === userId || u.id === userId));
+    } catch (err) {
+      setSelectedUserUploads([]);
+      setViewingUser(null);
+      alert('Failed to fetch user uploads.');
+    }
+  };
+
+  const handleDeleteUpload = async (uploadId) => {
+    if (!window.confirm('Are you sure you want to delete this file?')) return;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/files/${uploadId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (viewingUser) handleViewUploads(viewingUser._id);
+    } catch (err) {
+      alert('Failed to delete file.');
+    }
+  };
+
+  const handleDownloadUpload = async (uploadId, format) => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get(`/api/files/${uploadId}/download`, {
+        headers: { Authorization: `Bearer ${token}` },
+        responseType: 'blob',
+      });
+      const contentDisposition = res.headers['content-disposition'];
+      let fileName = 'downloaded_file';
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="(.+)"/);
+        if (match) fileName = match[1];
+      }
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', fileName);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      alert('Failed to download file.');
+    }
+  };
+
+  const handleViewData = (uploadId) => {
+    alert('File preview not implemented for admin.');
   };
 
   return (
@@ -151,14 +229,17 @@ const AdminDashboard = () => {
                 </TableHead>
                 <TableBody>
                   {users.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user._id}>
                       <TableCell>{user.name}</TableCell>
                       <TableCell>{user.email}</TableCell>
                       <TableCell>{getUserRole(user.role)}</TableCell>
                       <TableCell>{user.createdAt}</TableCell>
                       <TableCell>
-                        <Button size="small" variant="outlined">
-                          Edit
+                        <Button size="small" variant="outlined" onClick={() => handleViewUploads(user._id)}>
+                          View Uploads
+                        </Button>
+                        <Button size="small" variant="outlined" color="error" onClick={() => handleDeleteUser(user._id)} sx={{ ml: 1 }}>
+                          Delete
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -168,6 +249,25 @@ const AdminDashboard = () => {
             </TableContainer>
           </CardContent>
         </Card>
+
+        {/* Show selected user's uploads in a modal or section */}
+        {viewingUser && (
+          <Dialog open={!!viewingUser} onClose={() => setViewingUser(null)} maxWidth="md" fullWidth>
+            <DialogTitle>{viewingUser.name}'s Upload History</DialogTitle>
+            <DialogContent>
+              <UploadHistory
+                uploads={selectedUserUploads || []}
+                onViewData={handleViewData}
+                onDeleteUpload={null}
+                onRefresh={() => handleViewUploads(viewingUser._id)}
+                onDownload={handleDownloadUpload}
+              />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setViewingUser(null)}>Close</Button>
+            </DialogActions>
+          </Dialog>
+        )}
       </Container>
     </Box>
   );

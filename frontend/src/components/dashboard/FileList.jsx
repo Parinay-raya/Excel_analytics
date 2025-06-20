@@ -22,22 +22,10 @@ import {
   BarChart as ChartIcon
 } from '@mui/icons-material';
 
-// Sample data - replace with actual API call
-const sampleFiles = [
-  { id: 1, name: 'Sales_Report_2023.xlsx', uploadDate: '2023-10-15', size: '1.2 MB', rows: 1250, columns: 8 },
-  { id: 2, name: 'Inventory_Q3.xlsx', uploadDate: '2023-09-28', size: '3.5 MB', rows: 4500, columns: 12 },
-  { id: 3, name: 'Customer_Data.xlsx', uploadDate: '2023-09-10', size: '2.8 MB', rows: 3200, columns: 15 },
-  { id: 4, name: 'Financial_Summary.xlsx', uploadDate: '2023-08-22', size: '0.9 MB', rows: 850, columns: 10 },
-  { id: 5, name: 'Marketing_Metrics.xlsx', uploadDate: '2023-08-05', size: '1.7 MB', rows: 2100, columns: 9 },
-];
-
 const FileList = ({ onViewFile, onDeleteFile, onAnalyzeFile }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
   const [loading, setLoading] = useState(false);
-
-  // In a real app, you would fetch files from an API
-  const [files, setFiles] = useState(sampleFiles);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -52,7 +40,6 @@ const FileList = ({ onViewFile, onDeleteFile, onAnalyzeFile }) => {
     // In a real app, you would call an API to delete the file
     setLoading(true);
     setTimeout(() => {
-      setFiles(files.filter(file => file.id !== fileId));
       setLoading(false);
       if (onDeleteFile) onDeleteFile(fileId);
     }, 500);

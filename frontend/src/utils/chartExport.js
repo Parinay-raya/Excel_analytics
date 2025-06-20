@@ -2,6 +2,9 @@
  * Utility functions for exporting charts as PNG
  */
 
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+
 /**
  * Convert an SVG element to a PNG data URL
  * @param {SVGElement} svgElement - The SVG element to convert
@@ -102,20 +105,34 @@ export const exportChartAsPng = async (chartContainer, fileName = 'chart') => {
 };
 
 /**
- * Export a chart as a PDF file (simplified version that just shows a message)
+ * Export a chart as a PDF file
  * @param {HTMLElement} chartContainer - The container element of the chart
  * @param {string} fileName - The name of the file to download
  * @param {Object} options - Options for the PDF
  */
 export const exportChartAsPdf = async (chartContainer, fileName = 'chart', options = {}) => {
   try {
-    // For now, just export as PNG and show a message
-    await exportChartAsPng(chartContainer, fileName);
-    
-    // Show a message to the user
-    alert('PDF export is currently not available. Your chart has been exported as PNG instead.');
+    // Find the SVG element within the chart container
+    const svgElement = chartContainer.querySelector('svg');
+    if (!svgElement) {
+      throw new Error('No SVG element found in the chart container');
+    }
+    // Get the dimensions of the SVG
+    const svgRect = svgElement.getBoundingClientRect();
+    const width = svgRect.width;
+    const height = svgRect.height;
+    // Convert SVG to PNG data URL
+    const dataUrl = await svgToPngDataUrl(svgElement, { width, height });
+    // Create PDF
+    const pdf = new jsPDF({ orientation: width > height ? 'l' : 'p', unit: 'pt', format: [width, height + 40] });
+    if (options.title) {
+      pdf.setFontSize(18);
+      pdf.text(options.title, 40, 30);
+    }
+    pdf.addImage(dataUrl, 'PNG', 20, 40, width - 40, height - 60);
+    pdf.save(`${fileName}.pdf`);
   } catch (error) {
-    console.error('Failed to export chart:', error);
+    console.error('Failed to export chart as PDF:', error);
     throw error;
   }
 };
@@ -160,20 +177,40 @@ export const exportElementAsPng = async (element, fileName = 'export') => {
 };
 
 /**
- * Export a DOM element as a PDF file (simplified version that just shows a message)
+ * Export a DOM element as a PDF file
  * @param {HTMLElement} element - The DOM element to export
  * @param {string} fileName - The name of the file to download
  * @param {Object} options - Options for the PDF
  */
 export const exportElementAsPdf = async (element, fileName = 'export', options = {}) => {
   try {
-    // For now, just export as PNG and show a message
-    await exportElementAsPng(element, fileName);
-    
-    // Show a message to the user
-    alert('PDF export is currently not available. Your chart has been exported as PNG instead.');
+    // Try to find an SVG in the element
+    const svgElement = element.querySelector('svg');
+    if (svgElement) {
+      await exportChartAsPdf(element, fileName, options);
+    } else {
+      // If no SVG, try to use canvas directly
+      const canvas = document.createElement('canvas');
+      const width = element.offsetWidth;
+      const height = element.offsetHeight;
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, width, height);
+      // Create a data URL from the canvas
+      const dataUrl = canvas.toDataURL('image/png');
+      // Create PDF
+      const pdf = new jsPDF({ orientation: width > height ? 'l' : 'p', unit: 'pt', format: [width, height + 40] });
+      if (options.title) {
+        pdf.setFontSize(18);
+        pdf.text(options.title, 40, 30);
+      }
+      pdf.addImage(dataUrl, 'PNG', 20, 40, width - 40, height - 60);
+      pdf.save(`${fileName}.pdf`);
+    }
   } catch (error) {
-    console.error('Failed to export element:', error);
+    console.error('Failed to export element as PDF:', error);
     throw error;
   }
 };

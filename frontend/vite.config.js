@@ -14,7 +14,10 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true,
-    cors: true
+    cors: true,
+    proxy: {
+      '/api': 'http://localhost:5000'
+    }
   },
   build: {
     outDir: 'dist',

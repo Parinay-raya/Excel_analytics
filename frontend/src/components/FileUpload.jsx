@@ -17,6 +17,7 @@ import {
   Close as CloseIcon,
   InsertDriveFile as FileIcon
 } from '@mui/icons-material';
+import axios from 'axios';
 
 const FileUpload = ({ onUploadSuccess }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -61,30 +62,26 @@ const FileUpload = ({ onUploadSuccess }) => {
     setError('');
     setSuccess('');
 
-    // Simulate upload progress
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += 10;
-      setUploadProgress(progress);
-      if (progress >= 100) {
-        clearInterval(progressInterval);
-      }
-    }, 300);
-
     try {
-      // Simulate API call with a delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      // Mock response data for each file
-      selectedFiles.forEach(file => {
-        const mockResponse = {
-          id: 'upload_' + Date.now() + '_' + file.name,
-          fileName: file.name,
-          uploadDate: new Date().toISOString(),
-          fileSize: file.size,
-          status: 'Processed'
-        };
-        onUploadSuccess(mockResponse);
-      });
+      for (const file of selectedFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+        // Optionally, you can add columns/rowCount if you parse the file client-side
+        const token = localStorage.getItem('token');
+        const res = await axios.post('/api/files/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${token}`
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadProgress(percentCompleted);
+          }
+        });
+        if (res.data && res.data.file) {
+          onUploadSuccess(res.data.file);
+        }
+      }
       setUploadProgress(100);
       setSuccess('Files uploaded successfully!');
       setTimeout(() => {
