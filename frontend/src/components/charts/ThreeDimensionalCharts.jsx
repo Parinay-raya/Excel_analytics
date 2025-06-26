@@ -97,17 +97,16 @@ const ThreeDimensionalCharts = ({ data, columns }) => {
   const plotlyData = getPlotlyData();
 
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">
-          3D Data Visualization
-        </Typography>
-        <ChartExportControls 
-          chartRef={chartRef} 
-          chartTitle={`${xAxisColumn} vs ${yAxisColumn} vs ${zAxisColumn} (3D ${chartType})`}
-          fileName={`3d_${chartType}_${xAxisColumn}_${yAxisColumn}_${zAxisColumn}`}
-        />
-      </Box>
+    <div className="card mb-4">
+      <div className="card-body">
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h5 className="card-title mb-0">3D Data Visualization</h5>
+          <ChartExportControls 
+            chartRef={chartRef} 
+            chartTitle={`${xAxisColumn} vs ${yAxisColumn} vs ${zAxisColumn} (3D ${chartType})`}
+            fileName={`3d_${chartType}_${xAxisColumn}_${yAxisColumn}_${zAxisColumn}`}
+          />
+        </div>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={4}>
@@ -190,7 +189,8 @@ const ThreeDimensionalCharts = ({ data, columns }) => {
           config={{ responsive: true }}
         />
       </Box>
-    </Paper>
+      </div>
+    </div>
   );
 };
 

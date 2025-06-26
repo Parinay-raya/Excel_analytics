@@ -15,8 +15,7 @@ const uploadFile = async (req, res) => {
     }
     const { originalname, filename, path: filePath, size, mimetype } = req.file;
     const userId = req.user._id;
-
-    // Parse the Excel file to get data and columns
+// Parse the Excel file to get data and columns
     let columns = [];
     let jsonData = [];
     try {
@@ -31,6 +30,7 @@ const uploadFile = async (req, res) => {
       console.error('Excel parse error:', parseErr);
       // Continue, but columns/data will be empty
     }
+
 
     const rowCount = jsonData.length;
 
@@ -53,7 +53,7 @@ const uploadFile = async (req, res) => {
       description: `Uploaded file: ${originalname}`
     });
 
-    // Return file info, columns, and data
+     // Return file info, columns, and data
     res.status(201).json({
       message: 'File uploaded',
       file,

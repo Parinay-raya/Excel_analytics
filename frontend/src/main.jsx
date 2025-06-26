@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
 import './utils/debugHelper.js';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Log that we're starting to render
 console.log('Rendering React application...');

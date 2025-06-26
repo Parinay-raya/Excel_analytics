@@ -28,7 +28,8 @@ const UploadHistory = ({
   onViewData = () => {},
   onDeleteUpload = () => {},
   onRefresh = () => {},
-  onDownload = () => {}
+  onDownload = () => {},
+  className = ''
 }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
@@ -63,7 +64,7 @@ const UploadHistory = ({
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  // Format file size for display
+  // Format file size f or display
   const formatFileSize = (bytes) => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -87,7 +88,7 @@ const UploadHistory = ({
       </Box>
       
       <TableContainer>
-        <Table sx={{ minWidth: 650 }} aria-label="upload history table">
+        <Table sx={{ minWidth: 650 }} aria-label="upload history table" className={className}>
           <TableHead>
             <TableRow>
               <TableCell>File Name</TableCell>
@@ -123,7 +124,6 @@ const UploadHistory = ({
                       <Tooltip title="View Data">
                         <IconButton 
                           onClick={() => onViewData(upload.id)}
-                          disabled={upload.status !== 'Processed'}
                         >
                           <VisibilityIcon />
                         </IconButton>
@@ -187,7 +187,8 @@ UploadHistory.propTypes = {
   onViewData: PropTypes.func.isRequired,
   onDeleteUpload: PropTypes.func,
   onRefresh: PropTypes.func.isRequired,
-  onDownload: PropTypes.func.isRequired
+  onDownload: PropTypes.func.isRequired,
+  className: PropTypes.string
 };
 
 export default UploadHistory;

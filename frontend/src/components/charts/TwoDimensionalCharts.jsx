@@ -59,17 +59,16 @@ const TwoDimensionalCharts = ({ data, columns }) => {
   }));
 
   return (
-    <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">
-          2D Data Visualization
-        </Typography>
-        <ChartExportControls 
-          chartRef={chartRef} 
-          chartTitle={`${yAxisColumn} by ${xAxisColumn} (${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart)`}
-          fileName={`${chartType}_chart_${xAxisColumn}_${yAxisColumn}`}
-        />
-      </Box>
+    <div className="card mb-4">
+      <div className="card-body">
+        <div className="d-flex justify-content-between align-items-center mb-2">
+          <h5 className="card-title mb-0">2D Data Visualization</h5>
+          <ChartExportControls 
+            chartRef={chartRef} 
+            chartTitle={`${yAxisColumn} by ${xAxisColumn} (${chartType.charAt(0).toUpperCase() + chartType.slice(1)} Chart)`}
+            fileName={`${chartType}_chart_${xAxisColumn}_${yAxisColumn}`}
+          />
+        </div>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={6}>
@@ -169,7 +168,8 @@ const TwoDimensionalCharts = ({ data, columns }) => {
           )}
         </ResponsiveContainer>
       </Box>
-    </Paper>
+      </div>
+    </div>
   );
 };
 

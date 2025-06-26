@@ -66,7 +66,7 @@ const FileList = ({ onViewFile, onDeleteFile, onAnalyzeFile }) => {
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center',
-          backgroundColor: 'rgba(255, 255, 255, 0.7)',
+          backgroundColor: 'rgba(226, 81, 81, 0.7)',
           zIndex: 1
         }}>
           <CircularProgress />

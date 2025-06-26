@@ -219,7 +219,7 @@ const Dashboard = () => {
 
   const user = getUserInfo();
 
-  const drawerWidth = 240;
+  const drawerWidth = 250;
 
   // Download handler for UploadHistory
   const handleDownloadUpload = async (uploadId, format) => {
@@ -260,7 +260,7 @@ const Dashboard = () => {
   const drawer = (
     <Box sx={{ width: drawerWidth }}>
       <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Avatar sx={{ width: 64, height: 64, mb: 1, bgcolor: 'primary.main' }}>
+        <Avatar sx={{ width: 84, height: 64, mb: 1, bgcolor: 'primary.main' }}>
           {user.name.charAt(0).toUpperCase()}
         </Avatar>
         <Typography variant="subtitle1" noWrap>
@@ -354,8 +354,8 @@ const Dashboard = () => {
           ml: { sm: drawerOpen ? `${drawerWidth-230}px` : 0 },
           transition: 'background 0.7s cubic-bezier(.4,0,.2,1)',
           background: colorMode.mode === 'dark'
-            ? 'radial-gradient(circle at 60% 40%, #232526 0%, #414345 100%)'
-            : 'radial-gradient(circle at 60% 40%, #e0eafc 0%, #cfdef3 100%)',
+            ? 'radial-gradient(circle at 60% 40%,rgb(48, 53, 55) 0%, #414345 100%)'
+            : 'radial-gradient(circle at 60% 40%,rgb(32, 92, 204) 0%,rgb(128, 175, 245) 100%)',
           minHeight: '100vh',
           position: 'relative',
         }}
@@ -407,16 +407,17 @@ const Dashboard = () => {
           </Tabs>
         )}
         
-        <Container maxWidth="xl">
+        <div className="dashboard-container">
           {/* Welcome message at the top */}
           <Box sx={{ mb: 4 }}>
-            <Typography variant="h5" sx={{ mt: 2, mb: 2 }}>
+            <Typography variant="h5" className="dashboard-title" sx={{ mt: 2, mb: 2 }}>
               Welcome, {user.name}!
             </Typography>
           </Box>
 
           {/* Always show Upload History section */}
           <UploadHistory 
+            className="upload-history-table"
             uploads={uploads || []}
             onViewData={handleViewData}
             onDeleteUpload={handleDeleteUpload}
@@ -439,6 +440,7 @@ const Dashboard = () => {
               {currentData.length > 0 && (
                 <>
                   <DataViewer 
+                    className="data-viewer-container"
                     data={currentData} 
                     columns={columns} 
                     fileName={currentFileName}
@@ -454,6 +456,7 @@ const Dashboard = () => {
           {activeTab === 1 && (
             <>
               <DataViewer 
+                className="data-viewer-container"
                 data={currentData} 
                 columns={columns} 
                 fileName={currentFileName}
@@ -467,7 +470,7 @@ const Dashboard = () => {
               )}
             </>
           )}
-        </Container>
+        </div>
       </Box>
       
       {/* Floating action button for upload */}

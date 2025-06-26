@@ -5,13 +5,6 @@ import {
   Typography,
   Card,
   CardContent,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Paper,
   Chip,
   AppBar,
@@ -160,9 +153,9 @@ const AdminDashboard = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Admin Dashboard - Excel Analytics
           </Typography>
-          <Button color="inherit" onClick={handleLogout} startIcon={<ExitToApp />}>
-            Logout
-          </Button>
+          <button className="btn btn-outline-light" onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <ExitToApp style={{ marginRight: 4 }} /> Logout
+          </button>
         </Toolbar>
       </AppBar>
 
@@ -173,41 +166,24 @@ const AdminDashboard = () => {
 
         {/* Stats Cards */}
         <Box sx={{ display: 'flex', gap: 3, mb: 4 }}>
-          <Card sx={{ minWidth: 200 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <People color="primary" sx={{ mr: 1 }} />
-                <Typography variant="h6">Total Users</Typography>
-              </Box>
-              <Typography variant="h3" color="primary">
-                {stats.totalUsers}
-              </Typography>
-            </CardContent>
-          </Card>
-
-          <Card sx={{ minWidth: 200 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <Analytics color="error" sx={{ mr: 1 }} />
-                <Typography variant="h6">Admins</Typography>
-              </Box>
-              <Typography variant="h3" color="error">
-                {stats.totalAdmins}
-              </Typography>
-            </CardContent>
-          </Card>
-
-          <Card sx={{ minWidth: 200 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                <People color="success" sx={{ mr: 1 }} />
-                <Typography variant="h6">Regular Users</Typography>
-              </Box>
-              <Typography variant="h3" color="success">
-                {stats.totalRegularUsers}
-              </Typography>
-            </CardContent>
-          </Card>
+          <div className="card text-white bg-primary mb-3" style={{ minWidth: 200 }}>
+            <div className="card-body">
+              <h5 className="card-title">Total Users</h5>
+              <p className="card-text" style={{ fontSize: '2rem', fontWeight: 700 }}>{stats.totalUsers}</p>
+            </div>
+          </div>
+          <div className="card text-white bg-danger mb-3" style={{ minWidth: 200 }}>
+            <div className="card-body">
+              <h5 className="card-title">Admins</h5>
+              <p className="card-text" style={{ fontSize: '2rem', fontWeight: 700 }}>{stats.totalAdmins}</p>
+            </div>
+          </div>
+          <div className="card text-white bg-success mb-3" style={{ minWidth: 200 }}>
+            <div className="card-body">
+              <h5 className="card-title">Regular Users</h5>
+              <p className="card-text" style={{ fontSize: '2rem', fontWeight: 700 }}>{stats.totalRegularUsers}</p>
+            </div>
+          </div>
         </Box>
 
         {/* Users Table */}
@@ -216,37 +192,37 @@ const AdminDashboard = () => {
             <Typography variant="h6" gutterBottom>
               User Management
             </Typography>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Name</TableCell>
-                    <TableCell>Email</TableCell>
-                    <TableCell>Role</TableCell>
-                    <TableCell>Created Date</TableCell>
-                    <TableCell>Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
+            <div className="table-responsive">
+              <table className="table table-striped table-hover table-bordered">
+                <thead className="table-dark">
+                  <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Created Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
                   {users.map((user) => (
-                    <TableRow key={user._id}>
-                      <TableCell>{user.name}</TableCell>
-                      <TableCell>{user.email}</TableCell>
-                      <TableCell>{getUserRole(user.role)}</TableCell>
-                      <TableCell>{user.createdAt}</TableCell>
-                      <TableCell>
-                        <Button size="small" variant="outlined" onClick={() => handleViewUploads(user._id)}>
+                    <tr key={user._id}>
+                      <td>{user.name}</td>
+                      <td>{user.email}</td>
+                      <td>{getUserRole(user.role)}</td>
+                      <td>{user.createdAt}</td>
+                      <td>
+                        <button className="btn btn-primary btn-sm me-2" onClick={() => handleViewUploads(user._id)}>
                           View Uploads
-                        </Button>
-                        <Button size="small" variant="outlined" color="error" onClick={() => handleDeleteUser(user._id)} sx={{ ml: 1 }}>
+                        </button>
+                        <button className="btn btn-danger btn-sm" onClick={() => handleDeleteUser(user._id)}>
                           Delete
-                        </Button>
-                      </TableCell>
-                    </TableRow>
+                        </button>
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
 
@@ -264,7 +240,7 @@ const AdminDashboard = () => {
               />
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setViewingUser(null)}>Close</Button>
+              <button className="btn btn-secondary" onClick={() => setViewingUser(null)}>Close</button>
             </DialogActions>
           </Dialog>
         )}
