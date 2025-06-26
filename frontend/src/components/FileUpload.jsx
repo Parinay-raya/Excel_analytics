@@ -79,7 +79,7 @@ const FileUpload = ({ onUploadSuccess }) => {
           }
         });
         if (res.data && res.data.file) {
-          onUploadSuccess(res.data.file);
+          onUploadSuccess(res.data);
         }
       }
       setUploadProgress(100);

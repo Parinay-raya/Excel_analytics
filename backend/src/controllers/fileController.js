@@ -15,9 +15,25 @@ const uploadFile = async (req, res) => {
     }
     const { originalname, filename, path: filePath, size, mimetype } = req.file;
     const userId = req.user._id;
-    // Optionally, accept columns and rowCount from req.body
-    const columns = req.body.columns ? JSON.parse(req.body.columns) : [];
-    const rowCount = req.body.rowCount ? parseInt(req.body.rowCount, 10) : 0;
+
+    // Parse the Excel file to get data and columns
+    let columns = [];
+    let jsonData = [];
+    try {
+      const workbook = xlsx.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      jsonData = xlsx.utils.sheet_to_json(worksheet, { defval: '' });
+      if (jsonData.length > 0) {
+        columns = Object.keys(jsonData[0]);
+      }
+    } catch (parseErr) {
+      console.error('Excel parse error:', parseErr);
+      // Continue, but columns/data will be empty
+    }
+
+    const rowCount = jsonData.length;
+
     const file = new ExcelFile({
       filename,
       originalName: originalname,
@@ -29,13 +45,21 @@ const uploadFile = async (req, res) => {
       rowCount
     });
     await file.save();
+
     // Log activity
     await Activity.create({
       user: userId,
       type: 'upload',
       description: `Uploaded file: ${originalname}`
     });
-    res.status(201).json({ message: 'File uploaded', file });
+
+    // Return file info, columns, and data
+    res.status(201).json({
+      message: 'File uploaded',
+      file,
+      columns,
+      data: jsonData
+    });
   } catch (err) {
     console.error('Upload error:', err);
     res.status(500).json({ error: 'Server error' });

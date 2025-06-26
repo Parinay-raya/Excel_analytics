@@ -138,21 +138,22 @@ const Dashboard = () => {
     navigate('/login');
   };
 
-  const handleUploadSuccess = (uploadData) => {
+  const handleUploadSuccess = (uploadResponse) => {
     fetchUploads(); // Refresh uploads after successful upload
     fetchActivities(); // Refresh activities after upload
-    // For demo: create simple mock data for the uploaded file (replace with real file parsing in production)
-    const newData = [
-      { id: 1, name: 'Row 1', value: Math.floor(Math.random() * 100) },
-      { id: 2, name: 'Row 2', value: Math.floor(Math.random() * 100) },
-      { id: 3, name: 'Row 3', value: Math.floor(Math.random() * 100) }
-    ];
-    setCurrentData(newData);
-    setCurrentFileName(uploadData.fileName);
-    
+  
+    // Use real data and columns from backend response
+    setCurrentData(uploadResponse.data || []);
+    setColumns(uploadResponse.columns || []);
+    setCurrentFileName(
+      (uploadResponse.file && (uploadResponse.file.fileName || uploadResponse.file.originalName)) ||
+      uploadResponse.fileName ||
+      ''
+    );
+  
     // Switch to the data view tab
     setActiveTab(1);
-    
+  
     // Hide the upload form
     setShowUploadForm(false);
   };
@@ -350,7 +351,7 @@ const Dashboard = () => {
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${drawerOpen ? drawerWidth : 0}px)` },
-          ml: { sm: drawerOpen ? `${drawerWidth}px` : 0 },
+          ml: { sm: drawerOpen ? `${drawerWidth-230}px` : 0 },
           transition: 'background 0.7s cubic-bezier(.4,0,.2,1)',
           background: colorMode.mode === 'dark'
             ? 'radial-gradient(circle at 60% 40%, #232526 0%, #414345 100%)'
